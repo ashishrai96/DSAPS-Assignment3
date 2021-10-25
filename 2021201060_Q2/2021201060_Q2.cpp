@@ -166,12 +166,23 @@ int main() {
             continue;
         }
 
+        bool *visited = new bool[n]();
+        bool dontPrint {false};
         int j {i};
+        std::string out{};
         do{
-            std::cout << j << " ";
+            if(j == parent[j] || parent[j] == INT_MAX || visited[j]){
+                dontPrint = true;
+                break;
+            }
+            // std::cout << j << " ";
+            out += std::to_string(j) + " ";
+            visited[j] = true;
             j = parent[j];
         }while(j != -1);
-        std::cout << std::endl;
+
+        if(!dontPrint)
+            std::cout << out << std::endl;
     }
     
     delete [] parent;
