@@ -12,7 +12,7 @@ void insertIntoTrie(std::string word, Node* root){
     char ch = word[0];
     auto it = root->chars.find(ch);
 
-    if(word.length() == 0){
+    if(word.length() == 0){        
         root->isEnd = true;
         return;
     }
@@ -50,7 +50,7 @@ void dfs(std::vector<std::string> &vec, std::string str, Node *root){
 
     if(root->isEnd){
         vec.push_back(str);
-        return;
+        // return;
     }
 
     auto it = root->chars.begin();
@@ -67,7 +67,8 @@ std::vector<std::string> autoComplete(std::string str, Node *root) {
     Node *p = root;
     size_t i {0};
     while(p != nullptr && i < str.length()){
-        auto it = p->chars.find(str[i]);
+        char s {str[i]};
+        auto it = p->chars.find(s);
         if(it != p->chars.end()){
             //  Char matches
             p = it->second;
@@ -75,6 +76,8 @@ std::vector<std::string> autoComplete(std::string str, Node *root) {
         }
         else{
             //  Char doesn't match
+            p = nullptr;
+            return vec;
         }
     }
 
@@ -82,8 +85,57 @@ std::vector<std::string> autoComplete(std::string str, Node *root) {
     return vec;
 }
 
-std::vector<std::string> autoCorrect(std::string str, Node *root) {
+std::vector<std::string> build(std::string str, Node *root, std::vector<std::vector<int>> vec, std::string read, std::vector<std::string> &ans){
+    size_t row {read.length()+1};
+    
+    if(root->isEnd) {
+        if(vec[row-1][str.length()] <= 3){
+            ans.push_back(read);
+        }
+        // return ans;
+    }
+    
+    auto it = root->chars.begin();
+    while(it != root->chars.end()){
+        std::vector<int> sub(str.length()+1);
+        vec.push_back(sub);
 
+        for(size_t i{0}; i<sub.size(); i++){
+            if(i==0){
+                vec[row][i] = read.length()+1;
+            }
+            else{
+                if(str[i-1] == it->first){
+                    vec[row][i] = vec[row-1][i-1];
+                }
+                else {
+                    int min { (vec[row][i-1] < vec[row-1][i]) ? vec[row][i-1] : vec[row-1][i] };
+                    min = (min < vec[row-1][i-1])? min : vec[row-1][i-1];
+                    vec[row][i] = min+1;
+                }
+            }
+        }
+
+        ans = build(str, it->second, vec, (read+it->first), ans);
+        vec.pop_back();
+        it++;
+    }
+
+    return ans;
+}
+
+std::vector<std::string> autoCorrect(std::string str, Node *root) {
+    std::vector<std::vector<int>> vec{};
+    std::vector<int> sub(str.length()+1);
+
+    for(size_t i{0}; i<sub.size(); i++){
+        sub[i] = i;
+    }
+    vec.push_back(sub);
+
+    std::vector<std::string> ans{};
+    ans = build(str, root, vec, {}, ans);
+    return ans;
 }
 
 void displayMenu() {
@@ -124,46 +176,55 @@ int main() {
         insertIntoTrie(word,  trie);
     }
 
+    // std::queue<Node*> q;
+    // q.push(trie);
+    // display(q);
+
     int ai;
     std::string ti {};
-    do{
-        displayMenu();
+    // do{
+        // displayMenu();
         std::cin >> ai;
         switch(ai){
             case 1:
             {
                 std::cin >> ti;
-                std::cout << "Probability of word's existence = " << spellCheck(ti,trie) << std::endl;
+                // std::cout << "Probability of word's existence = " << spellCheck(ti,trie) << std::endl;
+                std::cout << spellCheck(ti,trie) << std::endl;
             }
             break;
             case 2:
             {
                 std::cin >> ti;
                 std::vector<std::string> output =  autoComplete(ti, trie);
-                std::cout << "The suggestions :" <<std::endl;
+                // std::cout << "The suggestions :" <<std::endl;
+                std::cout << output.size() << std::endl;
                 for(auto a:output){
-                    std::cout << a << " ";
-                }std::cout <<std::endl;
+                    std::cout << a << std::endl;
+                }
+                // std::cout <<std::endl;
             }
             break;
             case 3:
             {
                 std::cin >> ti;
                 std::vector<std::string> output = autoCorrect(ti, trie);
-                std::cout << "The suggestions :" <<std::endl;
+                // std::cout << "The suggestions :" <<std::endl;
+                std::cout << output.size() << std::endl;
                 for(auto a:output){
-                    std::cout << a << " ";
-                }std::cout <<std::endl;
+                    std::cout << a << std::endl;
+                }
+                // std::cout <<std::endl;
             }
             break;
             default:
                 exit(0);
             break;
         }
-    }while(true);
+    // }while(true);
     
-    std::queue<Node*> q;
-    q.push(trie);
-    display(q);
+    // std::queue<Node*> q;
+    // q.push(trie);
+    // display(q);
     return 0;
 }
