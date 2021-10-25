@@ -1,0 +1,7 @@
+*
+!/*
+!.cph/
+!*.prob
+!.gitignore
+!*.cpp
+!*.h
